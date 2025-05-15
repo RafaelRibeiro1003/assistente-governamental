@@ -1,0 +1,59 @@
+const API_URL = 'https://assistente-governamental-backend.glitch.me/api/search ';
+
+document.getElementById('searchBtn').addEventListener('click', async () => {
+  const input = document.getElementById('searchInput');
+  const resultsDiv = document.getElementById('results');
+  const query = input.value.trim();
+
+  if (!query) {
+    alert('Digite um termo para pesquisa.');
+    return;
+  }
+
+  resultsDiv.innerHTML = '<p class="text-center">Buscando resultados...</p>';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      resultsDiv.innerHTML = '<p class="text-center text-gray-500">Nenhum resultado encontrado.</p>';
+      return;
+    }
+
+    resultsDiv.innerHTML = '';
+
+    data.forEach((result, index) => {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.innerHTML = `
+        <h3 class="font-semibold text-blue-700">
+          <a href="${result.link}" target="_blank">${result.item}</a>
+        </h3>
+        ${result.value ? `<p class="text-green-600 mt-1">${result.value}</p>` : ''}
+        <div class="mt-2 flex gap-3 text-sm">
+          <a href="${result.link}" target="_blank" class="text-blue-600 hover:text-blue-800">Ver site original</a>
+          <button onclick='copyLink("${result.link}")' class="text-gray-600 hover:text-gray-900">Copiar link</button>
+        </div>
+      `;
+      resultsDiv.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Erro:', error);
+    resultsDiv.innerHTML = '<p class="text-center text-red-500">Erro ao carregar os dados.</p>';
+  }
+});
+
+function copyLink(link) {
+  navigator.clipboard.writeText(link).then(() => {
+    alert('Link copiado com sucesso!');
+  }).catch(err => {
+    alert('Falha ao copiar o link.');
+    console.error('Erro ao copiar:', err);
+  });
+}
